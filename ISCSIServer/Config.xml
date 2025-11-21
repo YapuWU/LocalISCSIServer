@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<settings>
+  <ISCSI>
+    <Server IPAddress="127.0.0.1" Port="8080">
+      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
+        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
+        <Disk Path="d:\disk1.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+        <Disk Path="d:\disk2.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+      </Target>
+      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
+        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
+        <Disk Path="d:\disk3.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+        <Disk Path="d:\disk4.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+      </Target>
+    </Server>
+    <Server IPAddress="127.0.0.2" Port="8080">
+      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
+        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
+        <Disk Path="d:\disk5.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+        <Disk Path="d:\disk6.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+      </Target>
+      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
+        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
+        <Disk Path="d:\disk7.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+        <Disk Path="d:\disk8.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+      </Target>
+    </Server>
+  </ISCSI>
+</settings>
