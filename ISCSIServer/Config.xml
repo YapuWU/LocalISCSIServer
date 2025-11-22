@@ -1,28 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <settings>
   <ISCSI>
-    <Server IPAddress="127.0.0.1" Port="8080">
-      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
-        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
-        <Disk Path="d:\disk1.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
-        <Disk Path="d:\disk2.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
-      </Target>
-      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
-        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
-        <Disk Path="d:\disk3.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
-        <Disk Path="d:\disk4.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
-      </Target>
-    </Server>
-    <Server IPAddress="127.0.0.2" Port="8080">
-      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
-        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
-        <Disk Path="d:\disk5.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
-        <Disk Path="d:\disk6.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
-      </Target>
-      <Target Name="iqn.2025-08.net.dynv6.izacwu:target1">
-        <Initiator>iqn.12-2023.fdf:initiator1</Initiator>
-        <Disk Path="d:\disk7.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
-        <Disk Path="d:\disk8.vhd" Size="8" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+    <!--
+     Server : Each server node contains the following fields:
+        -Name: A unique name identifying the server. Names should be sequential.
+        -IPAddress: The IP address on which the iSCSI service will listen.
+        -Port: The port on which the iSCSI service will listen. Default is 3260.
+        -Target: A server may contain one or more targets.
+           -Name: A unique name identifying the target. Names should be sequential.
+            -TargetName: The iSCSI Qualified Name (IQN) of the target.
+            -Initiator: (Optional) Specifies allowed initiators for this target. If not set, all initiators are allowed.
+               -Name: A unique name identifying the initiator. Names should be sequential.
+               -Value: The IQN of the initiator.
+               -Disk: A target may contain one or more disks.
+                   -Name: A unique name identifying the disk. Names should be sequential.
+                   -Path: The file path of the disk. Supported file types are: VHD, VMDK, RAW.
+                          If the format is RAW, sector size can be specified in the path (e.g., d:\disk1.4096.raw).
+                   -Size: The size of the disk. Supported units are GB and MB. If the disk file already exists, this value will be ignored.
+                          Default unit is GB (e.g., Size="32" means 32GB).
+                   -AutoCreate: If true, the disk file will be created if it does not exist.
+                   -Dynamic: If true, the disk file will be created as a dynamic disk (only for VHD and VMDK files).
+                   -ReadOnly: If true, the disk will be read-only.    
+    -->
+    <Server Name="0" IPAddress="127.0.0.1" Port="3260">
+      <Target Name="0" TargetName="iqn.2025-08.net.dynv6.izacwu:target1">
+        <!--<Initiator Name="0">iqn.12-2023.fdf:initiator1</Initiator>-->
+        <Disk Name="0" Path="d:\disk1.raw" Size="32MB" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
       </Target>
     </Server>
   </ISCSI>

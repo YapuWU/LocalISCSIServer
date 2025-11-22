@@ -9,7 +9,7 @@ HostApplicationBuilder host = Host.CreateApplicationBuilder();
 
 host.Services.AddWindowsService();
 host.Services.AddSystemd();
-//host.Configuration.AddXmlFile("Config.xml");
+host.Configuration.AddXmlFile("Config.xml");
 
 host.Services.AddOptions<SCSIOption>()
     .Bind(host.Configuration.GetSection("ISCSI"));

@@ -3,6 +3,7 @@ using ISCSI.Server;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SCSI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace DiskServer
 
                 foreach (var targetOption in serverOption.Target)
                 {
-                    logger.LogDebug("Adding Target {TargetName}",targetOption.Name);
+                    logger.LogDebug("Adding Target {TargetName}",targetOption.TargetName);
                     List<Disk> disks = new List<Disk>();
                     foreach (var disk in targetOption.Disk)
                     {
@@ -49,9 +50,12 @@ namespace DiskServer
                         disks.Add(diskImage);
                     }
 
-                    ISCSITarget target = new ISCSITarget(targetOption.Name, disks);
+                    ISCSITarget target = new ISCSITarget(targetOption.TargetName, disks);
                     if(targetOption.Initiator.Count > 0)
                     {
+                        target.OnStandardInquiry += new EventHandler<StandardInquiryEventArgs>(OnStandardInquiry);
+                        target.OnUnitSerialNumberInquiry += new EventHandler<UnitSerialNumberInquiryEventArgs>(OnUnitSerialNumberInquiry);
+                        target.OnDeviceIdentificationInquiry += new EventHandler<DeviceIdentificationInquiryEventArgs>(OnDeviceIdentificationInquiry);
                         target.OnAuthorizationRequest += new EventHandler<AuthorizationRequestArgs>(OnAuthorizationRequest);
                     }
                     
@@ -64,6 +68,16 @@ namespace DiskServer
             }
             logger.LogInformation("iSCSI Servers started.");
             return Task.CompletedTask;
+        }
+
+        private void OnDeviceIdentificationInquiry(object? sender, DeviceIdentificationInquiryEventArgs e)
+        {
+           
+        }
+
+        private void OnUnitSerialNumberInquiry(object? sender, UnitSerialNumberInquiryEventArgs e)
+        {
+            
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -119,7 +133,10 @@ namespace DiskServer
             }
             return true;
         }
+        private void OnStandardInquiry(object? sender, StandardInquiryEventArgs args)
+        {
 
+        }
         private void OnAuthorizationRequest(object? sender, AuthorizationRequestArgs e)
         {
             SCSIOption scsiOption = options.Value;
@@ -127,7 +144,7 @@ namespace DiskServer
 
             var a = from server in scsiOption.Servers
                     from target in server.Target
-                    where target.Name == targetName
+                    where target.TargetName == targetName
                     from initiator in target.Initiator
                     where initiator == e.InitiatorName
                     select initiator;
