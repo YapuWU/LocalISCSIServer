@@ -10,6 +10,7 @@ namespace DiskServer
     public sealed class TargetOption
     {
         public required string TargetName { get; set; } = string.Empty;
+        public string VendorIdentification { get; set; } = string.Empty;
         [ConfigurationKeyName("Initiator")]
         public required List<string>  Initiator { get; set; } = new List<string>();
         [ConfigurationKeyName("Disk")]

@@ -26,59 +26,17 @@ namespace DiskServer
             logger.LogInformation("Starting iSCSI Servers...");
             foreach (var serverOption in scsiOption.Servers)
             {
-                logger.LogDebug("Starting iSCSI Server at {IPAddress}:{Port}",serverOption.IPAddress,serverOption.Port);
-                ISCSIServer server = new ISCSIServer();
-                List<ISCSITarget> targets = new List<ISCSITarget>();
-
-                foreach (var targetOption in serverOption.Target)
+                var server = StartAServer(serverOption);
+                if(server!=null)
                 {
-                    logger.LogDebug("Adding Target {TargetName}",targetOption.TargetName);
-                    List<Disk> disks = new List<Disk>();
-                    foreach (var disk in targetOption.Disk)
-                    {
-                        logger.LogDebug("Adding Disk {DiskPath}",disk.Path);
-                        string diskPath = disk.Path;
-                        if(!System.IO.Path.Exists(diskPath))
-                        {
-                            if(!CreateDisk(disk))
-                            {
-                                logger.LogError("Disk {diskPath} creation failed.",diskPath);
-                                continue;
-                            }
-                        }
-                        Disk diskImage = DiskImage.GetDiskImage(diskPath,disk.ReadOnly);
-                        disks.Add(diskImage);
-                    }
-
-                    ISCSITarget target = new ISCSITarget(targetOption.TargetName, disks);
-                    if(targetOption.Initiator.Count > 0)
-                    {
-                        target.OnStandardInquiry += new EventHandler<StandardInquiryEventArgs>(OnStandardInquiry);
-                        target.OnUnitSerialNumberInquiry += new EventHandler<UnitSerialNumberInquiryEventArgs>(OnUnitSerialNumberInquiry);
-                        target.OnDeviceIdentificationInquiry += new EventHandler<DeviceIdentificationInquiryEventArgs>(OnDeviceIdentificationInquiry);
-                        target.OnAuthorizationRequest += new EventHandler<AuthorizationRequestArgs>(OnAuthorizationRequest);
-                    }
-                    
-                    targets.Add(target);
+                    _servers.Add(server);
                 }
-                server.AddTargets(targets);
-                server.Start(new IPEndPoint(IPAddress.Parse(serverOption.IPAddress), serverOption.Port));
-                _servers.Add(server);
-
             }
             logger.LogInformation("iSCSI Servers started.");
             return Task.CompletedTask;
         }
 
-        private void OnDeviceIdentificationInquiry(object? sender, DeviceIdentificationInquiryEventArgs e)
-        {
-           
-        }
-
-        private void OnUnitSerialNumberInquiry(object? sender, UnitSerialNumberInquiryEventArgs e)
-        {
-            
-        }
+       
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
@@ -90,7 +48,71 @@ namespace DiskServer
             logger.LogInformation("iSCSI Servers stopped.");
             return Task.CompletedTask;
         }
+        private ISCSIServer? StartAServer(ServerOption serverOption)
+        {
+            ISCSIServer? server = null;
+            List<ISCSITarget> targets = new();
+            logger.LogInformation("Staring  ISCSIServer at {ip}:{port}", serverOption.IPAddress, serverOption.Port);
+            foreach (var target in serverOption.Target)
+            {
+                var t = StartATarget(target);
+                if(t != null)
+                {
+                    targets.Add(t);
+                }
+            }
+            if(targets.Count > 0)
+            {
+                server = new ISCSIServer();
+                server.AddTargets(targets);
+                server.Start(new IPEndPoint(IPAddress.Parse(serverOption.IPAddress), serverOption.Port));
+            }
 
+            return server;
+        }
+        private ISCSITarget? StartATarget(TargetOption targetOption)
+        {
+            ISCSITarget? target = null;
+            List<Disk> disks = new();
+
+            logger.LogInformation("Starting ISCSITarget {targetname}", targetOption.TargetName);
+            foreach (var diskOption in targetOption.Disk)
+            {
+                var disk = StartADisk(diskOption);
+                if(disk != null)
+                {
+                    disks.Add(disk);
+                }
+            }
+            if(disks.Count > 0)
+            {
+                target = new ISCSITarget(targetOption.TargetName, disks);
+                target.OnStandardInquiry += new EventHandler<StandardInquiryEventArgs>(OnStandardInquiry);
+                target.OnUnitSerialNumberInquiry += new EventHandler<UnitSerialNumberInquiryEventArgs>(OnUnitSerialNumberInquiry);
+                target.OnDeviceIdentificationInquiry += new EventHandler<DeviceIdentificationInquiryEventArgs>(OnDeviceIdentificationInquiry);
+                if (targetOption.Initiator.Count > 0)
+                {
+                    target.OnAuthorizationRequest += new EventHandler<AuthorizationRequestArgs>(OnAuthorizationRequest);
+                }
+            }
+            return target;
+        }
+        private Disk? StartADisk(DiskOption diskOption)
+        {
+            string diskPath = diskOption.Path;
+            logger.LogInformation("Starting disk {disk}", diskPath);
+            if (!System.IO.Path.Exists(diskPath))
+            {
+                if (!CreateDisk(diskOption))
+                {
+                    logger.LogError("Disk {diskPath} creation failed.", diskPath);
+                    return null;
+                }
+            }
+            Disk diskImage = DiskImage.GetDiskImage(diskPath, diskOption.ReadOnly);
+
+            return diskImage;
+        }
         private bool CreateDisk(DiskOption disk)
         {
             if(!disk.AutoCreate)
@@ -135,7 +157,38 @@ namespace DiskServer
         }
         private void OnStandardInquiry(object? sender, StandardInquiryEventArgs args)
         {
+            string targetName = ((ISCSITarget)sender!).TargetName;
+            SCSIOption scsiOption = options.Value;
+            var a = from server in scsiOption.Servers
+                    from target in server.Target
+                    where target.TargetName == targetName
+                    select target.VendorIdentification;
+            var vendorID = a.FirstOrDefault();
+            if(!string.IsNullOrEmpty(vendorID))
+            {
+                args.Data.VendorIdentification = vendorID;
+            }
+        }
+        private void OnDeviceIdentificationInquiry(object? sender, DeviceIdentificationInquiryEventArgs e)
+        {
 
+        }
+
+        private void OnUnitSerialNumberInquiry(object? sender, UnitSerialNumberInquiryEventArgs e)
+        {
+            string targetName = ((ISCSITarget)sender!).TargetName;
+            SCSIOption scsiOption = options.Value;
+            var a = from server in scsiOption.Servers
+                    from target in server.Target
+                    where target.TargetName == targetName
+                    from disk in target.Disk
+                    where  disk.Name == e.LUN.SingleLevelLUN
+                    select disk.SerialNumber;
+            var serialNumber = a.FirstOrDefault();
+            if (!string.IsNullOrEmpty(serialNumber))
+            {
+                e.Page.ProductSerialNumber   = serialNumber;
+            }
         }
         private void OnAuthorizationRequest(object? sender, AuthorizationRequestArgs e)
         {
@@ -156,9 +209,6 @@ namespace DiskServer
                 e.Accept = false;
                 return;
             }
-
-
-
             e.Accept = true;
         }
 

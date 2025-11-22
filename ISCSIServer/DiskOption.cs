@@ -27,10 +27,12 @@ namespace DiskServer
 
             return sizeInBytes;
         }
+        public int Name { get; set; }
         public required string Path { get; set; } = string.Empty;
         public required string Size { get; set; }
         public required bool AutoCreate { get; set; } = false;
         public required bool Dynamic { get; set; } = false;
         public required bool ReadOnly { get; set; } = false;
+        public required string SerialNumber { get; set; } = string.Empty;
     }
 }

@@ -9,6 +9,7 @@
         -Target: A server may contain one or more targets.
            -Name: A unique name identifying the target. Names should be sequential.
             -TargetName: The iSCSI Qualified Name (IQN) of the target.
+            -VendorIdentification: (Optional) The vendor identification string for the target.
             -Initiator: (Optional) Specifies allowed initiators for this target. If not set, all initiators are allowed.
                -Name: A unique name identifying the initiator. Names should be sequential.
                -Value: The IQN of the initiator.
@@ -21,11 +22,13 @@
                    -AutoCreate: If true, the disk file will be created if it does not exist.
                    -Dynamic: If true, the disk file will be created as a dynamic disk (only for VHD and VMDK files).
                    -ReadOnly: If true, the disk will be read-only.    
+                   -SerialNumber: (Optional) The serial number of the disk.
     -->
     <Server Name="0" IPAddress="127.0.0.1" Port="3260">
-      <Target Name="0" TargetName="iqn.2025-08.net.dynv6.izacwu:target1">
+      <Target Name="0" TargetName="iqn.2025-08.net.dynv6.izacwu:target1" VendorIdentification="Yapu">
         <!--<Initiator Name="0">iqn.12-2023.fdf:initiator1</Initiator>-->
-        <Disk Name="0" Path="d:\disk1.raw" Size="32MB" AutoCreate="True" Dynamic="True" ReadOnly="False"/>
+        <Disk Name="0" Path="d:\disk1.raw" Size="32MB" AutoCreate="True" Dynamic="True" ReadOnly="False" SerialNumber="1234566"/>
+        <!--<Disk Name="1" Path="d:\disk2.raw" Size="32MB" AutoCreate="True" Dynamic="True" ReadOnly="False" SerialNumber="654321"/>-->
       </Target>
     </Server>
   </ISCSI>
